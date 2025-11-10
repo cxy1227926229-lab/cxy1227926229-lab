@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   parseBatchCustomerRolls,
   createTransactionRecord,
@@ -62,6 +62,52 @@ function App() {
   // 店员视图筛选
   const [staffViewerId, setStaffViewerId] = useState('');
 
+  // 标记是否已完成初始数据加载
+  const isInitialLoadComplete = useRef(false);
+
+  // 从 localStorage 加载数据（页面加载时）
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ffxiv-roll-records');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 将时间字符串转换回 Date 对象
+        const records: TransactionRecord[] = parsed.map((r: any) => ({
+          ...r,
+          time: new Date(r.time)
+        }));
+        setAllRecords(records);
+        console.log('已加载', records.length, '条记录');
+      } else {
+        console.log('localStorage 中没有保存的数据');
+      }
+      // 标记初始加载完成
+      isInitialLoadComplete.current = true;
+    } catch (error) {
+      console.error('加载数据失败:', error);
+      isInitialLoadComplete.current = true;
+    }
+  }, []);
+
+  // 保存数据到 localStorage（当 allRecords 变化时，但跳过初始加载）
+  useEffect(() => {
+    // 只有在完成初始加载后才保存，避免覆盖已有数据
+    if (!isInitialLoadComplete.current) {
+      return;
+    }
+    try {
+      const dataToSave = JSON.stringify(allRecords);
+      localStorage.setItem('ffxiv-roll-records', dataToSave);
+      console.log('数据已保存到 localStorage，共', allRecords.length, '条记录');
+    } catch (error) {
+      console.error('保存数据失败:', error);
+      // 如果是存储空间不足，提示用户
+      if (error instanceof DOMException && error.code === 22) {
+        alert('存储空间不足，无法保存数据。请清理浏览器缓存后重试。');
+      }
+    }
+  }, [allRecords]);
+
   // 登录处理
   const handleLogin = (role: 'manager' | 'staff') => {
     if (role === 'manager') {
@@ -81,15 +127,17 @@ function App() {
 
   const announcementPreview = useMemo(() => {
     if (!staffId && !serviceName && !priceInfo) return '';
-    const target = `【${priceInfo || '价格/数量未填'}${serviceName || '业务名称未填'}（${staffId || '店员未填'}）】`;
+    // 如果价格信息有值，则包含在公告中；否则不显示价格部分
+    const pricePart = priceInfo ? priceInfo : '';
+    const target = `【${pricePart}${serviceName || '业务名称未填'}（${staffId || '店员未填'}）】`;
     const pickText = pickStrategy === 'min' ? '最小' : '最大';
     const slotText = slots > 1 ? `${slots} 位大人` : `1 位大人`;
     return `打扰致歉——请想要指定${target}速写业务的大人，在说话频道复制【/random】进行 roll 点，取点数${pickText}的${slotText}。`;
   }, [staffId, serviceName, priceInfo, pickStrategy, slots]);
 
   const handleGenerateAnnouncement = () => {
-    if (!staffId || !serviceName || !priceInfo) {
-      setErrorMessage('请先填写店员、业务名称和价格/数量信息。');
+    if (!staffId || !serviceName) {
+      setErrorMessage('请先填写店员和业务名称。');
       return;
     }
     setErrorMessage('');
@@ -274,17 +322,26 @@ function App() {
           }}>欢迎使用</h2>
           
           <div style={{ marginBottom: 28 }}>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: 12,
-              color: ff14Theme.text,
-              fontSize: 16,
-              fontWeight: 'bold'
-            }}>管理员登录</label>
+            <label 
+              htmlFor="login-password"
+              style={{ 
+                display: 'block', 
+                marginBottom: 12,
+                color: ff14Theme.text,
+                fontSize: 16,
+                fontWeight: 'bold'
+              }}
+            >
+              管理员登录
+            </label>
             <input
+              id="login-password"
+              name="login-password"
               type="password"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
+              placeholder="请输入管理员密码"
+              aria-label="管理员登录密码"
               style={{ 
                 width: '100%', 
                 padding: '12px 16px', 
@@ -313,6 +370,7 @@ function App() {
             />
             <button 
               onClick={() => handleLogin('manager')}
+              aria-label="管理员登录按钮"
               style={{ 
                 width: '100%', 
                 padding: '14px', 
@@ -350,6 +408,7 @@ function App() {
             }}>店员登录</label>
             <button 
               onClick={() => handleLogin('staff')}
+              aria-label="店员登录按钮"
               style={{ 
                 width: '100%', 
                 padding: '14px', 
@@ -424,6 +483,7 @@ function App() {
             setCurrentPage('welcome');
             setLoginPassword('');
           }}
+          aria-label="退出登录"
           style={{ 
             padding: '10px 20px', 
             background: ff14Theme.buttonSecondary,
@@ -461,6 +521,7 @@ function App() {
           <>
             <button 
               onClick={() => setCurrentPage('announcement')} 
+              aria-label="页面1：生成公告"
               style={navButtonStyle('announcement')}
               onMouseEnter={(e) => {
                 if (currentPage !== 'announcement') {
@@ -479,6 +540,7 @@ function App() {
             </button>
             <button 
               onClick={() => setCurrentPage('roll')} 
+              aria-label="页面2：粘贴结果"
               style={navButtonStyle('roll')}
               onMouseEnter={(e) => {
                 if (currentPage !== 'roll') {
@@ -497,6 +559,7 @@ function App() {
             </button>
             <button 
               onClick={() => setCurrentPage('staff')} 
+              aria-label="店员视图"
               style={navButtonStyle('staff')}
               onMouseEnter={(e) => {
                 if (currentPage !== 'staff') {
@@ -515,6 +578,7 @@ function App() {
             </button>
             <button 
               onClick={() => setCurrentPage('guest')} 
+              aria-label="roll点查询"
               style={navButtonStyle('guest')}
               onMouseEnter={(e) => {
                 if (currentPage !== 'guest') {
@@ -537,6 +601,7 @@ function App() {
           <>
             <button 
               onClick={() => setCurrentPage('stats')} 
+              aria-label="页面3：店员统计"
               style={navButtonStyle('stats')}
               onMouseEnter={(e) => {
                 if (currentPage !== 'stats') {
@@ -555,6 +620,7 @@ function App() {
             </button>
             <button 
               onClick={() => setCurrentPage('guest')} 
+              aria-label="roll点查询"
               style={navButtonStyle('guest')}
               onMouseEnter={(e) => {
                 if (currentPage !== 'guest') {
@@ -594,22 +660,28 @@ function App() {
               fontWeight: 'bold'
             }}>① 填写业务信息（用于自动生成公告）</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <label>
+            <label htmlFor="staff-id">
               店员 ID / 称号：
               <input
+                id="staff-id"
+                name="staff-id"
                 value={staffId}
                 onChange={(e) => setStaffId(e.target.value)}
                 placeholder="如 睠恋/Igniss 老师"
+                aria-label="店员 ID 或称号"
                 style={{ width: '100%', padding: 8, marginTop: 4 }}
               />
             </label>
-            <label>
+            <label htmlFor="service-select">
               业务名称（可下拉选择预设或手动输入）：
               <select
+                id="service-select"
+                name="service-select"
                 value=""
                 onChange={(e) => {
                   if (e.target.value) setServiceName(e.target.value);
                 }}
+                aria-label="业务名称预设选择"
                 style={{ width: '100%', padding: 8, marginTop: 4, marginBottom: 4 }}
               >
                 <option value="">-- 快速选择预设 --</option>
@@ -618,43 +690,73 @@ function App() {
                 ))}
               </select>
               <input
+                id="service-name"
+                name="service-name"
                 value={serviceName}
                 onChange={(e) => setServiceName(e.target.value)}
                 placeholder="或手动输入"
+                aria-label="业务名称手动输入"
                 style={{ width: '100%', padding: 8 }}
               />
             </label>
-            <label>
+            <label htmlFor="price-info">
               价格 / 数量信息：
               <input
+                id="price-info"
+                name="price-info"
                 value={priceInfo}
                 onChange={(e) => setPriceInfo(e.target.value)}
                 placeholder="如 500w、300w/张"
+                aria-label="价格或数量信息"
                 style={{ width: '100%', padding: 8, marginTop: 4 }}
               />
             </label>
-            <label>
+            <label htmlFor="slots">
               名额数量（中选人数）：
               <input
-                type="number"
-                min={1}
+                id="slots"
+                name="slots"
+                type="text"
                 value={slots}
-                onChange={(e) => setSlots(Math.max(1, Number(e.target.value)))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // 只允许输入数字，如果为空则设为1
+                  if (value === '') {
+                    setSlots(1);
+                    return;
+                  }
+                  // 只允许输入数字字符
+                  if (/^\d+$/.test(value)) {
+                    const numValue = parseInt(value, 10);
+                    if (numValue > 0) {
+                      setSlots(numValue);
+                    }
+                  }
+                }}
+                placeholder="请输入中选人数，如：1、2、3"
+                aria-label="名额数量（手动输入）"
                 style={{ width: '100%', padding: 8, marginTop: 4 }}
               />
             </label>
-            <label>
+            <label htmlFor="pick-strategy">
               取最大还是最小：
               <select
+                id="pick-strategy"
+                name="pick-strategy"
                 value={pickStrategy}
                 onChange={(e) => setPickStrategy(e.target.value as PickStrategy)}
+                aria-label="取最大还是最小点数"
                 style={{ width: '100%', padding: 8, marginTop: 4 }}
               >
                 <option value="min">取最小点（常见）</option>
                 <option value="max">取最大点</option>
               </select>
             </label>
-            <button onClick={handleGenerateAnnouncement} style={{ padding: '10px 16px', marginTop: 12 }}>
+            <button 
+              onClick={handleGenerateAnnouncement} 
+              aria-label="生成公告文案"
+              style={{ padding: '10px 16px', marginTop: 12 }}
+            >
               生成公告文案
             </button>
             {errorMessage && <p style={{ color: '#f88' }}>{errorMessage}</p>}
@@ -680,22 +782,33 @@ function App() {
         <section>
           <h2 style={{ fontSize: 20, marginBottom: 16 }}>② 粘贴 roll 结果，自动选人</h2>
           <p style={{ marginBottom: 12 }}>把游戏里聊天日志复制进来（保留原格式即可，括号里的"最大100"会自动忽略）。</p>
+          <label htmlFor="roll-input" style={{ display: 'block', marginBottom: 8 }}>
+            Roll 点结果输入：
+          </label>
           <textarea
+            id="roll-input"
+            name="roll-input"
             rows={10}
             value={rollInput}
             onChange={(e) => setRollInput(e.target.value)}
             placeholder={`示例：\n[晓晓贝8]<维加斯> 宇宙和香 掷出了 672 点！\n达达快 掷出了127点！`}
+            aria-label="粘贴 roll 点结果"
             style={{ width: '100%', maxWidth: 600, padding: 12, fontSize: 15, borderRadius: 6 }}
           />
           <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-            <button onClick={handleRunRoll} style={{ padding: '10px 16px', background: '#1f6feb', border: 'none', color: '#fff', cursor: 'pointer', borderRadius: 4 }}>
+            <button 
+              onClick={handleRunRoll} 
+              aria-label="生成中选结果"
+              style={{ padding: '10px 16px', background: '#1f6feb', border: 'none', color: '#fff', cursor: 'pointer', borderRadius: 4 }}
+            >
               生成中选结果
             </button>
             <button 
               onClick={() => {
                 setRollInput('');
                 setResultMessage('');
-              }} 
+              }}
+              aria-label="清空输入"
               style={{ padding: '10px 16px', background: '#2b2d30', border: '1px solid #444', color: '#fff', cursor: 'pointer', borderRadius: 4 }}
             >
               清空输入
@@ -706,6 +819,16 @@ function App() {
               {resultMessage}
             </div>
           )}
+
+          {/* 数据保存状态提示 */}
+          <div style={{ marginTop: 16, padding: 12, background: '#1a3a1a', border: '1px solid #4a8', borderRadius: 6, fontSize: 14 }}>
+            <div style={{ color: '#8f8', marginBottom: 4 }}>
+              ✓ 数据自动保存：{allRecords.length > 0 ? `已保存 ${allRecords.length} 条记录到浏览器本地存储` : '暂无记录（添加记录后会自动保存）'}
+            </div>
+            <div style={{ color: '#aaa', fontSize: 12 }}>
+              提示：数据保存在浏览器本地，刷新页面后不会丢失。打开浏览器控制台（F12）可查看保存日志。
+            </div>
+          </div>
 
           {/* 所有记录列表（可删除） */}
           {allRecords.length > 0 && (
@@ -719,6 +842,7 @@ function App() {
                       setResultMessage('');
                     }
                   }}
+                  aria-label="清空所有记录"
                   style={{ padding: '8px 16px', background: '#dc3545', border: 'none', color: '#fff', cursor: 'pointer', borderRadius: 4, fontSize: 14 }}
                 >
                   清空所有记录
@@ -747,6 +871,7 @@ function App() {
                           setAllRecords(allRecords.filter(r => r.id !== record.id));
                         }
                       }}
+                      aria-label={`删除记录 ${idx + 1}`}
                       style={{ 
                         padding: '6px 12px', 
                         background: '#dc3545', 
@@ -831,6 +956,7 @@ function App() {
             {stats && stats.length > 0 && (
               <button 
                 onClick={handleExportStats}
+                aria-label="导出统计CSV"
                 style={{ 
                   padding: '10px 20px', 
                   background: ff14Theme.buttonPrimary,
@@ -857,12 +983,15 @@ function App() {
             )}
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label>
+            <label htmlFor="staff-viewer-id">
               输入店员ID/称号：
               <input
+                id="staff-viewer-id"
+                name="staff-viewer-id"
                 value={staffViewerId}
                 onChange={(e) => setStaffViewerId(e.target.value)}
                 placeholder="如 睠恋/Igniss 老师"
+                aria-label="输入店员ID或称号"
                 style={{ width: '100%', maxWidth: 300, padding: 8, marginTop: 4 }}
               />
             </label>
