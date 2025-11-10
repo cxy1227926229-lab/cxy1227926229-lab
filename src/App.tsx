@@ -36,64 +36,6 @@ const ff14Theme = {
 };
 
 // 通用样式生成函数
-const ff14Styles = {
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    marginTop: 8,
-    background: ff14Theme.backgroundDark,
-    border: ff14Theme.borderLight,
-    borderRadius: 6,
-    color: ff14Theme.text,
-    fontSize: 16,
-    outline: 'none',
-    transition: 'all 0.3s'
-  },
-  textarea: {
-    width: '100%',
-    padding: '12px 16px',
-    background: ff14Theme.backgroundDark,
-    border: ff14Theme.borderLight,
-    borderRadius: 6,
-    color: ff14Theme.text,
-    fontSize: 15,
-    outline: 'none',
-    transition: 'all 0.3s',
-    fontFamily: 'inherit'
-  },
-  select: {
-    width: '100%',
-    padding: '12px 16px',
-    marginTop: 8,
-    background: ff14Theme.backgroundDark,
-    border: ff14Theme.borderLight,
-    borderRadius: 6,
-    color: ff14Theme.text,
-    fontSize: 16,
-    outline: 'none',
-    transition: 'all 0.3s',
-    cursor: 'pointer'
-  },
-  button: {
-    padding: '12px 24px',
-    background: ff14Theme.buttonPrimary,
-    border: 'none',
-    color: '#0a0a0a',
-    cursor: 'pointer',
-    borderRadius: 6,
-    fontSize: 16,
-    fontWeight: 'bold',
-    boxShadow: ff14Theme.shadow,
-    transition: 'all 0.3s'
-  },
-  card: {
-    background: ff14Theme.backgroundCard,
-    padding: '24px',
-    borderRadius: 12,
-    border: ff14Theme.borderLight,
-    boxShadow: '0 2px 10px rgba(0,0,0,0.3)'
-  },
-};
 
 function App() {
   // 权限和页面导航
@@ -884,7 +826,36 @@ function App() {
       {/* 店员视图（仅管理员） */}
       {currentPage === 'staff' && canAccessPage('staff') && (
         <section>
-          <h2 style={{ fontSize: 20, marginBottom: 16 }}>店员视图</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 20, margin: 0 }}>店员视图</h2>
+            {stats && stats.length > 0 && (
+              <button 
+                onClick={handleExportStats}
+                style={{ 
+                  padding: '10px 20px', 
+                  background: ff14Theme.buttonPrimary,
+                  border: 'none',
+                  color: '#0a0a0a',
+                  cursor: 'pointer',
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontWeight: 'bold',
+                  boxShadow: ff14Theme.shadow,
+                  transition: 'all 0.3s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = ff14Theme.shadowHover;
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = ff14Theme.shadow;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                导出统计CSV
+              </button>
+            )}
+          </div>
           <div style={{ marginBottom: 16 }}>
             <label>
               输入店员ID/称号：

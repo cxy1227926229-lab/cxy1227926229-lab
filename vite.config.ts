@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  // 这里必须写你的GitHub仓库名，末尾加斜杠！
-  base: '/cxy1227926229-lab/', 
   plugins: [react()],
+  // 如果部署到子路径，取消下面的注释并设置正确的路径
+  // base: '/your-repo-name/',
 });

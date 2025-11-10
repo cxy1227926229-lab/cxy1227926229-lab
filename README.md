@@ -1,73 +1,127 @@
-# React + TypeScript + Vite
+# 比尔格的祝福菜单 - FF14 Roll点工具
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个用于最终幻想14（FF14）速写店的Roll点交易与薪资管理工具。
 
-Currently, two official plugins are available:
+## ✨ 功能特性
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎲 **自动解析Roll点结果** - 从游戏聊天记录自动提取Roll点数据
+- 📢 **自动生成公告** - 根据业务信息自动生成游戏内公告文案
+- 📊 **店员统计** - 自动统计店员业务数据，支持CSV导出
+- 👥 **多角色权限** - 管理员和店员不同权限视图
+- 🎨 **FF14风格UI** - 精美的最终幻想14主题界面
 
-## React Compiler
+## 🚀 快速开始
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 本地开发
 
-## Expanding the ESLint configuration
+```bash
+# 安装依赖
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# 启动开发服务器
+npm run dev
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# 构建生产版本
+npm run build
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 预览生产版本
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 部署到线上
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**详细部署教程请查看：[部署教程.md](./部署教程.md)**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+#### 推荐方式：Vercel（最简单）
+
+1. 将代码推送到GitHub
+2. 访问 [vercel.com](https://vercel.com) 并登录
+3. 点击 "Add New Project"
+4. 选择你的仓库，点击 "Deploy"
+5. 完成！获得公开访问链接
+
+#### 其他部署方式
+
+- **Netlify** - 拖拽 `dist` 文件夹即可
+- **Cloudflare Pages** - 连接GitHub仓库自动部署
+- **GitHub Pages** - 免费但需要配置（见部署教程）
+
+## 📖 使用说明
+
+### 管理员功能
+
+1. **生成公告**
+   - 填写店员ID、业务名称、价格信息
+   - 设置名额数量和取点规则（最大/最小）
+   - 自动生成公告文案，复制到游戏频道
+
+2. **处理Roll点**
+   - 粘贴游戏聊天记录
+   - 自动解析Roll点并选出中选者
+   - 查看所有记录和统计
+
+3. **店员视图**
+   - 输入店员ID查看专属记录
+   - 导出统计CSV文件
+
+### 店员功能
+
+1. **查看统计**
+   - 查看所有业务记录
+   - 查看自己的业务数据
+
+2. **Roll点查询**
+   - 查看所有公开的Roll点记录
+
+## 🔐 默认密码
+
+- **管理员密码：** `15351`
+- **店员登录：** 无需密码，直接点击登录
+
+⚠️ **重要：** 部署后请立即修改管理员密码（在 `src/App.tsx` 第69行）
+
+## 📁 项目结构
+
 ```
+ffxiv-roll-tool/
+├── src/
+│   ├── App.tsx          # 主应用组件
+│   ├── core.ts          # 核心业务逻辑
+│   └── main.tsx         # 入口文件
+├── dist/                # 构建输出（部署时使用）
+├── vite.config.ts       # Vite配置
+└── package.json         # 项目配置
+```
+
+## 🛠️ 技术栈
+
+- **React 19** - UI框架
+- **TypeScript** - 类型安全
+- **Vite** - 构建工具
+- **纯前端** - 无需后端服务器
+
+## ⚠️ 注意事项
+
+1. **数据存储**：当前版本数据存储在浏览器本地，清除缓存会丢失数据
+2. **浏览器兼容**：建议使用现代浏览器（Chrome、Firefox、Edge等）
+3. **密码安全**：部署后请修改默认管理员密码
+
+## 📝 更新日志
+
+### v1.0.0
+- ✅ 修复代码警告
+- ✅ 添加导出统计功能
+- ✅ 优化项目配置
+- ✅ 完成部署准备
+
+## 📄 许可证
+
+MIT License
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
+---
+
+**需要帮助？** 查看 [部署教程.md](./部署教程.md) 获取详细的部署指南。
