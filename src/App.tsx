@@ -1249,14 +1249,18 @@ function App() {
                 borderRadius: 4,
                 fontSize: 12
               }}>
-                <span style={{ 
-                  display: 'inline-block',
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: syncStatus === 'synced' || syncStatus === 'firebase' ? '#4f8' : syncStatus === 'syncing' ? '#ff8' : database ? '#4af' : '#888',
-                  animation: syncStatus === 'syncing' ? 'pulse 1.5s infinite' : 'none'
-                }}></span>
+                <span 
+                  role="img"
+                  aria-label={syncStatus === 'synced' || syncStatus === 'firebase' ? '已同步状态' : syncStatus === 'syncing' ? '同步中状态' : database ? 'Firebase已连接状态' : '实时同步已启用状态'}
+                  style={{ 
+                    display: 'inline-block',
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: syncStatus === 'synced' || syncStatus === 'firebase' ? '#4f8' : syncStatus === 'syncing' ? '#ff8' : database ? '#4af' : '#888',
+                    animation: syncStatus === 'syncing' ? 'pulse 1.5s infinite' : 'none'
+                  }}
+                ></span>
                 <span style={{ color: syncStatus === 'synced' || syncStatus === 'firebase' ? '#8f8' : syncStatus === 'syncing' ? '#ff8' : database ? '#8af' : '#aaa' }}>
                   {syncStatus === 'firebase' ? '✅ Firebase实时同步' : syncStatus === 'synced' ? '已同步' : syncStatus === 'syncing' ? '同步中...' : database ? '🌐 Firebase已连接' : '实时同步已启用'}
                 </span>
