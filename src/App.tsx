@@ -1110,7 +1110,7 @@ function App() {
             rows={10}
             value={rollInput}
             onChange={(e) => setRollInput(e.target.value)}
-            placeholder={`示例：\n[晓晓贝8]<维加斯> 宇宙和香 掷出了 672 点！\n达达快 掷出了127点！`}
+            placeholder={`示例：\n晓晓贝8<猫么> 香 掷出了 672 点！\n达达快 掷出了127点！`}
             aria-label="粘贴 roll 点结果"
             style={{ width: '100%', maxWidth: 600, padding: 12, fontSize: 15, borderRadius: 6 }}
           />
