@@ -1,0 +1,54 @@
+import { useState } from 'react';
+import {
+  parseBatchCustomerRolls,
+  createTransactionRecord,
+  generateRollResultMessage
+} from './core';
+
+function App() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+
+  const handleClick = () => {
+    const customers = parseBatchCustomerRolls(input);
+    if (customers.length === 0) {
+      setResult('请按照“顾客ID 空格 点数”的格式输入，每行一位顾客，例如：\nA 88');
+      return;
+    }
+    const record = createTransactionRecord(
+      customers,
+      'STAFF001',
+      '单人速写',
+      1,
+      5000,
+      '无拒接',
+      'max'
+    );
+    setResult(generateRollResultMessage(record));
+  };
+
+  return (
+    <div style={{ padding: 24, maxWidth: 480 }}>
+      <h1>FF14 速写店 Roll 点工具</h1>
+      <p>输入示例：</p>
+      <pre style={{ background: '#f5f5f5', padding: 12 }}>
+{`A 88
+B 99
+C 76`}
+      </pre>
+      <textarea
+        rows={6}
+        style={{ width: '100%', fontSize: 16 }}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder={'每行格式：顾客ID 点数\n例如：A 88'}
+      />
+      <button onClick={handleClick} style={{ marginTop: 12, padding: '8px 16px' }}>
+        生成结果
+      </button>
+      <p style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>{result}</p>
+    </div>
+  );
+}
+
+export default App;
