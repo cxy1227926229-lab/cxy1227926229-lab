@@ -4,6 +4,6 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // 如果部署到子路径，取消下面的注释并设置正确的路径
-  // base: '/your-repo-name/',
+  // GitHub Pages 部署在子路径下，需要设置 base path
+  base: '/cxy1227926229-lab/',
 });
